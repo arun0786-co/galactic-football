@@ -1,0 +1,17 @@
+# Compiled Object files
+*.o
+
+# Executables
+sample
+
+# Mac OS folder attributes
+.DS_Store
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
