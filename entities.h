@@ -19,6 +19,10 @@ struct Ball {
     int owner_id = -1; // -1 means loose ball, otherwise it's the ID of the player dribbling it
     int last_kicker_id = -1;
     float kick_cooldown = 0.0f;
+    // after a tackle the new owner cannot be tackled for a moment; without
+    // it two players next to each other steal the ball back and forth on
+    // every frame
+    float tackle_protect = 0.0f;
     
     void update(float dt);
     void kick(const Vector3f& direction, float power);

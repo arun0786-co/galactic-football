@@ -20,6 +20,9 @@ void Ball::update(float dt) {
     if (kick_cooldown > 0.0f) {
         kick_cooldown -= dt;
     }
+    if (tackle_protect > 0.0f) {
+        tackle_protect -= dt;
+    }
     
     // gravity
     if (pos.y > radius) {

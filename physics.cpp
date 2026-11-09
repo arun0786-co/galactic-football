@@ -6,6 +6,9 @@
 #include <cmath>
 
 // section 5.1: physics implementation
+
+// how long a player who just won the ball is safe from the next tackle
+const float TACKLE_PROTECT_SECONDS = 0.5f;
 // applying friction based on the terrain type.
 // handling ball bouncing off the walls and goals.
 
@@ -93,8 +96,8 @@ void apply_physics(float dt) {
     if (g_ball.owner_id != -1) {
         Player& owner = g_players[g_ball.owner_id];
         
-        // Check for opponent tackles
-        for (int i = 0; i < 22; i++) {
+        // Check for opponent tackles (not right after the ball changed hands)
+        for (int i = 0; i < 22 && g_ball.tackle_protect <= 0.0f; i++) {
             if (i == g_ball.owner_id) continue;
             Player& attacker = g_players[i];
             
@@ -156,12 +159,14 @@ void apply_physics(float dt) {
                             g_game_state.referee_timer = 1.5f;
                             
                             g_ball.owner_id = attacker.id;
+                            g_ball.tackle_protect = TACKLE_PROTECT_SECONDS;
                             if (attacker.team == TEAM_HUMAN && !g_autoplay) g_active_human_player = attacker.id;
                             break;
                         }
                     } else if (dist < 1.0f && attacker_speed > 1.0f) {
                         // Normal standing tackle / steal
                         g_ball.owner_id = attacker.id;
+                        g_ball.tackle_protect = TACKLE_PROTECT_SECONDS;
                         if (attacker.team == TEAM_HUMAN && !g_autoplay) g_active_human_player = attacker.id;
                         break;
                     }
