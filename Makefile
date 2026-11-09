@@ -9,9 +9,9 @@ UNAME := $(shell uname -s)
 ifeq ($(UNAME),Darwin)
   BREW     := $(shell brew --prefix 2>/dev/null || echo /opt/homebrew)
   CXXFLAGS += -I$(BREW)/include -DGL_SILENCE_DEPRECATION
-  GLLIBS   := -L$(BREW)/lib -lGLEW -lglfw -framework OpenGL
+  GLLIBS   := -L$(BREW)/lib -lGLEW -lglfw -lz -framework OpenGL
 else
-  GLLIBS   := -lGLEW -lglfw -lGL -lpthread
+  GLLIBS   := -lGLEW -lglfw -lGL -lz -lpthread
 endif
 
 IMGUI := imgui imgui_draw imgui_tables imgui_widgets imgui_demo imgui_impl_glfw imgui_impl_opengl3

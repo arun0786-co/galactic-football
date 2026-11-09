@@ -12,6 +12,10 @@ extern int g_camera_mode;
 void init_renderer();
 void render_frame();
 
+// offscreen captures draw at a fixed size without the hud
+extern int g_render_w, g_render_h; // 0 = use the window's framebuffer size
+extern bool g_draw_hud;
+
 const Matrix4f& get_view_matrix();
 const Matrix4f& get_proj_matrix();
 

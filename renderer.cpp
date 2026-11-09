@@ -27,6 +27,8 @@ static Matrix4f g_proj_matrix;
 extern GLFWwindow* g_window; // from main.cpp
 
 int g_camera_mode = 0; // 0=classic, 1=player, 2=top-down, 3=side
+int g_render_w = 0, g_render_h = 0;
+bool g_draw_hud = true;
 
 const Matrix4f& get_view_matrix() { return g_view_matrix; }
 const Matrix4f& get_proj_matrix() { return g_proj_matrix; }
@@ -135,8 +137,8 @@ void init_renderer() {
 }
 
 static void setup_camera() {
-    int fbw = 0, fbh = 0;
-    glfwGetFramebufferSize(g_window, &fbw, &fbh);
+    int fbw = g_render_w, fbh = g_render_h;
+    if (fbw <= 0 || fbh <= 0) glfwGetFramebufferSize(g_window, &fbw, &fbh);
     if (fbw <= 0 || fbh <= 0) return;
 
     PersProjInfo proj;
@@ -158,8 +160,10 @@ static void setup_camera() {
         eye.x = std::max(-10.0f, std::min(PITCH_LENGTH + 10.0f, eye.x));
         eye.z = std::max(-10.0f, std::min(PITCH_WIDTH + 10.0f, eye.z));
     } else if (g_camera_mode == 1) {
-        // Player follow (third person)
-        Player& p = g_players[g_active_human_player];
+        // Player follow (third person); in watch mode, the ball carrier
+        int follow = g_active_human_player >= 0 ? g_active_human_player
+                   : (g_ball.owner_id >= 0 ? g_ball.owner_id : 9);
+        Player& p = g_players[follow];
         float rad = p.heading_deg * M_PI / 180.0f;
         eye = Vector3f(p.pos.x - 10.0f * cos(rad), 5.0f, p.pos.z - 10.0f * sin(rad));
         target = Vector3f(p.pos.x + 10.0f * cos(rad), 2.0f, p.pos.z + 10.0f * sin(rad));
@@ -511,5 +515,5 @@ void render_frame() {
 
     glBindVertexArray(0);
 
-    draw_hud();
+    if (g_draw_hud) draw_hud();
 }

@@ -29,6 +29,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         }
     }
     
+    // in watch mode nobody is on the keyboard; only cameras and escape work
+    if (g_autoplay) return;
+
     // complex action triggers happen on PRESS
     if (action == GLFW_PRESS) {
         if (g_game_state.phase == MatchPhase::Kickoff || g_game_state.phase == MatchPhase::FreeKick) {
