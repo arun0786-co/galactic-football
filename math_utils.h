@@ -27,6 +27,8 @@
 #define MATH_UTILS_H
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <iostream>
 #include <stdlib.h>
 
