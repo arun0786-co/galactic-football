@@ -108,8 +108,9 @@ static bool capture_png(const char* path, int w, int h) {
 static void usage() {
     std::fprintf(stderr,
         "usage: galactic_football [--watch] [--terrain neon|ice|mud]\n"
+        "                         [--aliens brute|speedster|teleporter]\n"
         "       galactic_football --shot out.png [--seconds t] [--camera 0-3]\n"
-        "                         [--terrain neon|ice|mud] [--size WxH] [--seed s]\n");
+        "                         [--terrain ...] [--aliens ...] [--size WxH] [--seed s]\n");
 }
 
 int main(int argc, char* argv[]) {
@@ -132,6 +133,11 @@ int main(int argc, char* argv[]) {
             if (t == "ice") g_game_state.current_terrain = TerrainType::IcePlanet;
             else if (t == "mud") g_game_state.current_terrain = TerrainType::MudWasteland;
             else g_game_state.current_terrain = TerrainType::NeonGrid;
+        } else if (a == "--aliens" && has) {
+            std::string t = argv[++i];
+            if (t == "speedster") g_game_state.current_alien_type = AlienType::Speedster;
+            else if (t == "teleporter") g_game_state.current_alien_type = AlienType::Teleporter;
+            else g_game_state.current_alien_type = AlienType::Brute;
         } else { usage(); return EXIT_FAILURE; }
     }
     if (shot) {
