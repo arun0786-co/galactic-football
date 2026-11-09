@@ -22,7 +22,16 @@ galactic_football: $(CORE) $(GAME)
 	$(CXX) $^ $(GLLIBS) -o $@
 
 clean:
-	rm -f galactic_football $(CORE) $(GAME) *.d imgui/*.d
+	rm -f galactic_football soccer_sim sim_main.o $(CORE) $(GAME) *.d imgui/*.d
 
 .PHONY: clean
 -include $(wildcard *.d imgui/*.d)
+
+# headless ai vs ai matches, no window or opengl
+soccer_sim: sim_main.o $(CORE)
+	$(CXX) $^ -lpthread -o $@
+
+test: soccer_sim
+	./soccer_sim --matches 270 --check
+
+.PHONY: test
