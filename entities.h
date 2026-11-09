@@ -75,6 +75,13 @@ extern Ball g_ball;
 extern Player g_players[22]; // 0-10 are humans, 11-21 are aliens
 extern int g_active_human_player; // the player currently controlled by the keyboard
 
+// when true nobody is controlled by the keyboard: both teams run the same
+// ai and kickoffs start by themselves (used by the headless simulator)
+extern bool g_autoplay;
+
+// x of the goal line a team attacks (humans attack the right goal)
+inline float attack_goal_x(int team) { return team == 0 ? 105.0f : 0.0f; }
+
 // entity initialization
 void init_entities();
 void reset_positions_for_kickoff();

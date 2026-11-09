@@ -10,6 +10,7 @@
 Ball g_ball;
 Player g_players[22];
 int g_active_human_player = 0; // default to first human player
+bool g_autoplay = false;
 
 // section 4: entity update logic
 // this is where the AI and physics for the entities are processed.
@@ -212,9 +213,10 @@ void reset_positions_for_kickoff() {
     int kickoff_team = g_game_state.team_to_kickoff;
     
     if (kickoff_team == TEAM_HUMAN) {
-        g_active_human_player = 9; // forward
-        g_players[g_active_human_player].pos = Vector3f(cx - 0.5f, 0.0f, cz);
-        g_ball.owner_id = g_active_human_player;
+        int forward = 9;
+        g_players[forward].pos = Vector3f(cx - 0.5f, 0.0f, cz);
+        g_ball.owner_id = forward;
+        g_active_human_player = g_autoplay ? -1 : forward;
     } else {
         int alien_forward = 20;
         g_players[alien_forward].pos = Vector3f(cx + 0.5f, 0.0f, cz);
@@ -227,12 +229,13 @@ void update_all_entities(float dt) {
     
     // Kickoff & FreeKick Phase Lockout & AI Auto-Start
     if (g_game_state.phase == MatchPhase::Kickoff || g_game_state.phase == MatchPhase::FreeKick) {
-        if (g_ball.owner_id != -1 && g_players[g_ball.owner_id].team == TEAM_ALIEN) {
+        if (g_ball.owner_id != -1 && (g_autoplay || g_players[g_ball.owner_id].team == TEAM_ALIEN)) {
             static float ai_wait_timer = 0.0f;
             ai_wait_timer += dt;
             if (ai_wait_timer > 1.5f) { // wait 1.5s before taking kick
                 g_game_state.phase = MatchPhase::Playing;
-                Vector3f aim(0.0f - g_players[g_ball.owner_id].pos.x, 0.0f, PITCH_WIDTH/2.0f - g_players[g_ball.owner_id].pos.z);
+                const Player& taker = g_players[g_ball.owner_id];
+                Vector3f aim(attack_goal_x(taker.team) - taker.pos.x, 0.0f, PITCH_WIDTH/2.0f - taker.pos.z);
                 aim.Normalize();
                 g_ball.kick(aim, g_players[g_ball.owner_id].kick_power * 1.0f);
                 play_sound_kick();
@@ -332,15 +335,16 @@ void update_all_entities(float dt) {
             
             // Limit goalie speed so they can be beaten by fast passes/shots
             p.max_speed = 3.5f; 
-        } else if (g_ball.owner_id == p.id && p.team == TEAM_ALIEN) {
+        } else if (g_ball.owner_id == p.id && (g_autoplay || p.team == TEAM_ALIEN)) {
             // AI Possession Logic (Dribbling towards goal)
-            target = Vector3f(0.0f, 0.0f, PITCH_WIDTH / 2.0f); 
+            float goal_x = attack_goal_x(p.team);
+            target = Vector3f(goal_x, 0.0f, PITCH_WIDTH / 2.0f); 
             
             // AI Cross Logic
-            bool in_final_third = (p.pos.x < PITCH_LENGTH / 3.0f);
+            bool in_final_third = fabs(p.pos.x - goal_x) < PITCH_LENGTH / 3.0f;
             bool near_sidelines = (p.pos.z < 15.0f || p.pos.z > PITCH_WIDTH - 15.0f);
             if (in_final_third && near_sidelines) {
-                Vector3f aim(0.0f - p.pos.x, 0.0f, PITCH_WIDTH/2.0f - p.pos.z);
+                Vector3f aim(goal_x - p.pos.x, 0.0f, PITCH_WIDTH/2.0f - p.pos.z);
                 aim.Normalize();
                 aim.y = p.kick_power * 1.5f * 0.6f; // Lifted pass formula
                 g_ball.kick(aim, p.kick_power * 1.5f);

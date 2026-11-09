@@ -81,7 +81,7 @@ void apply_physics(float dt) {
                 g_ball.owner_id = g_players[i].id;
                 
                 // if it's a human player, automatically switch control to them!
-                if (g_players[i].team == TEAM_HUMAN) {
+                if (g_players[i].team == TEAM_HUMAN && !g_autoplay) {
                     g_active_human_player = g_players[i].id;
                 }
                 break;
@@ -156,13 +156,13 @@ void apply_physics(float dt) {
                             g_game_state.referee_timer = 1.5f;
                             
                             g_ball.owner_id = attacker.id;
-                            if (attacker.team == TEAM_HUMAN) g_active_human_player = attacker.id;
+                            if (attacker.team == TEAM_HUMAN && !g_autoplay) g_active_human_player = attacker.id;
                             break;
                         }
                     } else if (dist < 1.0f && attacker_speed > 1.0f) {
                         // Normal standing tackle / steal
                         g_ball.owner_id = attacker.id;
-                        if (attacker.team == TEAM_HUMAN) g_active_human_player = attacker.id;
+                        if (attacker.team == TEAM_HUMAN && !g_autoplay) g_active_human_player = attacker.id;
                         break;
                     }
                 }
