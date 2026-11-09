@@ -20,3 +20,6 @@ soccer_sim
 *.njsproj
 *.sln
 *.swp
+
+# local captures
+/shots/
