@@ -227,6 +227,29 @@ void reset_positions_for_kickoff() {
     }
 }
 
+// the teammate of p (not a goalkeeper) with the most room: the largest
+// distance to the nearest opponent. -1 if there is none.
+static int most_open_teammate(const Player& p) {
+    int best_mate = -1;
+    float best_mate_def_dist = 0.0f;
+    for (int t = 0; t < 22; t++) {
+        if (g_players[t].team == p.team && t != p.id && g_players[t].role != PlayerRole::Goalkeeper) {
+            float mate_min_def = 9999.0f;
+            for (int d = 0; d < 22; d++) {
+                if (g_players[d].team != p.team) {
+                    float dist = sqrt(pow(g_players[d].pos.x - g_players[t].pos.x, 2) + pow(g_players[d].pos.z - g_players[t].pos.z, 2));
+                    if (dist < mate_min_def) mate_min_def = dist;
+                }
+            }
+            if (mate_min_def > best_mate_def_dist) {
+                best_mate_def_dist = mate_min_def;
+                best_mate = t;
+            }
+        }
+    }
+    return best_mate;
+}
+
 void update_all_entities(float dt) {
     g_ball.update(dt);
     
@@ -371,25 +394,7 @@ void update_all_entities(float dt) {
                     }
                     
                     if (min_def_dist < 3.0f) { // Under pressure!
-                        int best_mate = -1;
-                        float best_mate_def_dist = 0.0f;
-                        
-                        for (int t = 0; t < 22; t++) {
-                            if (g_players[t].team == p.team && t != p.id && g_players[t].role != PlayerRole::Goalkeeper) {
-                                float mate_min_def = 9999.0f;
-                                for (int d = 0; d < 22; d++) {
-                                    if (g_players[d].team != p.team) {
-                                        float dist = sqrt(pow(g_players[d].pos.x - g_players[t].pos.x, 2) + pow(g_players[d].pos.z - g_players[t].pos.z, 2));
-                                        if (dist < mate_min_def) mate_min_def = dist;
-                                    }
-                                }
-                                if (mate_min_def > best_mate_def_dist) {
-                                    best_mate_def_dist = mate_min_def;
-                                    best_mate = t;
-                                }
-                            }
-                        }
-                        
+                        int best_mate = most_open_teammate(p);
                         if (best_mate != -1) {
                             Vector3f aim(g_players[best_mate].pos.x - p.pos.x, 0.0f, g_players[best_mate].pos.z - p.pos.z);
                             aim.Normalize();
