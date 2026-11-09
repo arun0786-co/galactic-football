@@ -346,7 +346,10 @@ void update_all_entities(float dt) {
             if (in_final_third && near_sidelines) {
                 Vector3f aim(goal_x - p.pos.x, 0.0f, PITCH_WIDTH/2.0f - p.pos.z);
                 aim.Normalize();
-                aim.y = p.kick_power * 1.5f * 0.6f; // Lifted pass formula
+                // lift as a direction component, like the player's lofted pass;
+                // kick() multiplies by the power, so scaling by it here too
+                // sent the ball up at about 840 m/s
+                aim.y = 0.5f;
                 g_ball.kick(aim, p.kick_power * 1.5f);
                 play_sound_kick();
             } 
