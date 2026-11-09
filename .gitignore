@@ -3,6 +3,11 @@
 
 # Executables
 sample
+galactic_football
+soccer_sim
+
+# Dependency files
+*.d
 
 # Mac OS folder attributes
 .DS_Store

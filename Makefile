@@ -1,58 +1,28 @@
-## makefile for assignment 3 (3d car world)
-##
-## standard opengl project makefile for mac.
-## the tech stack is identical: opengl + glew + glfw + imgui on mac.
-##
-## i should be able to type `make` and get a running binary,
-## and `make clean` to start fresh.
+# builds the game on macos (homebrew glew + glfw) or linux (libglew-dev
+# libglfw3-dev), and the headless simulator, which needs no opengl
 
-CC = g++
-RM = /bin/rm -rf
+CXX      ?= c++
+CXXFLAGS ?= -O2 -g
+CXXFLAGS += -std=c++17 -Wall -Iimgui -MMD -MP
 
-## compiler flags:
-##   -O3   : optimizations
-##   -Wall : enable most warnings
-##   -g    : debug info for gdb/lldb
-CFLAGS = -O3 -Wall -g
+UNAME := $(shell uname -s)
+ifeq ($(UNAME),Darwin)
+  BREW     := $(shell brew --prefix 2>/dev/null || echo /opt/homebrew)
+  CXXFLAGS += -I$(BREW)/include -DGL_SILENCE_DEPRECATION
+  GLLIBS   := -L$(BREW)/lib -lGLEW -lglfw -framework OpenGL
+else
+  GLLIBS   := -lGLEW -lglfw -lGL -lpthread
+endif
 
-## include paths for glew, glfw, and imgui headers
-INCDIRS = -I/opt/homebrew/opt/glew/include -I/opt/homebrew/opt/glfw/include -I./imgui
+IMGUI := imgui imgui_draw imgui_tables imgui_widgets imgui_demo imgui_impl_glfw imgui_impl_opengl3
+CORE  := game_state.o entities.o physics.o audio.o
+GAME  := main.o input.o renderer.o $(IMGUI:%=imgui/%.o)
 
-## library paths
-LIBDIRS = -L. -L/usr/local/lib -L/opt/homebrew/opt/glew/lib -L/opt/homebrew/opt/glfw/lib
+galactic_football: $(CORE) $(GAME)
+	$(CXX) $^ $(GLLIBS) -o $@
 
-## libraries to link against (mac framework for opengl)
-LIBS = -framework OpenGL -lGLEW -lglfw
+clean:
+	rm -f galactic_football $(CORE) $(GAME) *.d imgui/*.d
 
-## name of the final executable
-BIN = sample
-
-## imgui source files
-IMGUI_SRCS = imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_tables.cpp imgui/imgui_widgets.cpp imgui/imgui_demo.cpp imgui/imgui_impl_glfw.cpp imgui/imgui_impl_opengl3.cpp
-## game source files
-GAME_SRCS = main.cpp game_state.cpp entities.cpp physics.cpp input.cpp renderer.cpp audio.cpp
-SRCS = $(GAME_SRCS) $(IMGUI_SRCS)
-
-## object files
-IMGUI_OBJS = $(IMGUI_SRCS:.cpp=.o)
-GAME_OBJS = $(GAME_SRCS:.cpp=.o)
-OBJS = $(GAME_OBJS) $(IMGUI_OBJS)
-
-## build the final binary from object files
-${BIN} : ${OBJS}
-	${CC} ${OBJS} ${LIBDIRS} ${LIBS} -o $@
-
-## compile any .cpp to .o
-%.o : %.cpp
-	${CC} ${CFLAGS} ${INCDIRS} -c $< -o $@
-
-.PHONY : clean remake
-
-clean :
-	${RM} ${BIN}
-	${RM} ${OBJS}
-
-remake : clean ${BIN}
-
-depend:
-	makedepend -- $(CFLAGS) -- -Y $(SRCS)
+.PHONY: clean
+-include $(wildcard *.d imgui/*.d)
