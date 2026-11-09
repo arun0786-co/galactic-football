@@ -100,31 +100,37 @@ void Player::update(float dt) {
     update_animation(dt);
 }
 
+// steering towards a target. the player wants to run straight at it at full
+// speed, slowing down over the last ARRIVE_RADIUS metres, and can change its
+// velocity by at most accel * dt per step. the old version added accel * dt
+// towards the target and only capped the speed, so the sideways part of the
+// velocity never died out: a fast player went into orbit around the ball
+// (turning radius v^2 / a, 4 m for a speedster) and never got within the
+// 1 m needed to pick it up.
+static const float ARRIVE_RADIUS = 2.0f;
+
 void Player::move_towards(const Vector3f& target, float dt) {
     float dx = target.x - pos.x;
     float dz = target.z - pos.z;
     float dist = sqrt(dx*dx + dz*dz);
     
     if (dist > 0.1f) {
-        float dir_x = dx / dist;
-        float dir_z = dz / dist;
-        
-        // accelerate towards target
-        vel.x += dir_x * accel * dt;
-        vel.z += dir_z * accel * dt;
-        
-        // clamp to max speed
-        float speed = sqrt(vel.x*vel.x + vel.z*vel.z);
-        if (speed > max_speed) {
-            vel.x = (vel.x / speed) * max_speed;
-            vel.z = (vel.z / speed) * max_speed;
+        float want = max_speed * std::min(1.0f, dist / ARRIVE_RADIUS);
+        float steer_x = dx / dist * want - vel.x;
+        float steer_z = dz / dist * want - vel.z;
+        float steer = sqrt(steer_x*steer_x + steer_z*steer_z);
+        float max_steer = accel * dt;
+        if (steer > max_steer) {
+            steer_x *= max_steer / steer;
+            steer_z *= max_steer / steer;
         }
+        vel.x += steer_x;
+        vel.z += steer_z;
         
-        // update heading smoothly
-        float target_heading = atan2(vel.z, vel.x) * 180.0f / M_PI;
-        heading_deg = target_heading; // simplified: instant turn
+        if (vel.x * vel.x + vel.z * vel.z > 0.01f) {
+            heading_deg = atan2(vel.z, vel.x) * 180.0f / M_PI; // instant turn
+        }
     } else {
-        // slow down
         vel.x *= 0.8f;
         vel.z *= 0.8f;
     }
