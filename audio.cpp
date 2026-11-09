@@ -5,7 +5,10 @@
 
 #include <chrono>
 
+bool g_audio_enabled = true;
+
 static void play_sound_async(const std::string& command) {
+    if (!g_audio_enabled) return;
     std::thread([command]() {
         std::system((command + " > /dev/null 2>&1").c_str());
     }).detach();
