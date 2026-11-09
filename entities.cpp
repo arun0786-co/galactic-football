@@ -339,7 +339,19 @@ void update_all_entities(float dt) {
         Player& p = g_players[i];
         Vector3f target = p.base_position;
         
-        if (p.role == PlayerRole::Goalkeeper) {
+        if (p.role == PlayerRole::Goalkeeper && g_ball.owner_id == p.id) {
+            // keeper has the ball: kick it out to the most open teammate.
+            // without this the keeper kept "rushing" at the ball held in
+            // front of him and carried it over his own goal line.
+            int mate = most_open_teammate(p);
+            Vector3f aim = (mate != -1)
+                ? Vector3f(g_players[mate].pos.x - p.pos.x, 0.0f, g_players[mate].pos.z - p.pos.z)
+                : Vector3f(attack_goal_x(p.team) - p.pos.x, 0.0f, 0.0f);
+            aim.Normalize();
+            aim.y = 0.3f;
+            g_ball.kick(aim, p.kick_power);
+            play_sound_kick();
+        } else if (p.role == PlayerRole::Goalkeeper) {
             // true goalie AI: maximum speed limit and defensive arc
             float cz = PITCH_WIDTH / 2.0f;
             float gx = (p.team == TEAM_HUMAN) ? 0.0f : PITCH_LENGTH; // goal line
